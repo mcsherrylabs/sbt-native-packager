@@ -5,6 +5,8 @@ organization := "com.typesafe.sbt"
 
 Global / scalaVersion := "2.12.6"
 
+updateOptions := updateOptions.value.withGigahorse(false)
+
 // crossBuildingSettings
 crossSbtVersions := Vector("0.13.17", "1.1.6")
 
@@ -62,11 +64,11 @@ scriptedLaunchOpts += "-Dproject.version=" + version.value
 
 // Release configuration
 releasePublishArtifactsAction := PgpKeys.publishSigned.value
-publishMavenStyle := false
+//publishMavenStyle := false
 
 // The release task doesn't run any tests. We rely on travis.ci and appveyor,
 // because it's impossible to run all tests (linux, macosx, windows) on a single computer.
-import ReleaseTransformations._
+/*import ReleaseTransformations._
 releaseProcess := Seq[ReleaseStep](
   checkSnapshotDependencies,
   inquireVersions,
@@ -88,7 +90,7 @@ releaseProcess := Seq[ReleaseStep](
 // bintray config
 bintrayOrganization := Some("sbt")
 bintrayRepository := "sbt-plugin-releases"
-
+*/
 addCommandAlias("scalafmtAll", "; scalafmt ; test:scalafmt ; sbt:scalafmt")
 // ci commands
 addCommandAlias("validateFormatting", "; scalafmt::test ; test:scalafmt::test ; sbt:scalafmt::test")

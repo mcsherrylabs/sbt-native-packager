@@ -1,12 +1,11 @@
 package com.typesafe.sbt.packager.windows
 
-import sbt._
-import sbt.Keys.{mappings, name, packageBin, sourceDirectory, streams, target, version}
 import com.typesafe.sbt.SbtNativePackager.Universal
 import com.typesafe.sbt.packager.Keys.{maintainer, packageDescription, packageName, packageSummary}
-import com.typesafe.sbt.packager.universal.UniversalPlugin
-import com.typesafe.sbt.packager.Compat._
 import com.typesafe.sbt.packager.SettingsHelper
+import com.typesafe.sbt.packager.universal.UniversalPlugin
+import sbt.Keys._
+import sbt._
 
 /**
   * == Windows Plugin ==

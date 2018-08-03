@@ -2,10 +2,9 @@ package com.typesafe.sbt
 package packager
 package windows
 
-import Keys._
 import sbt._
 
-import collection.mutable.ArrayBuffer
+import scala.collection.mutable.ArrayBuffer
 
 case class WindowsProductInfo(id: String, // UUID of the package
                               title: String, // Human readable name of the package
@@ -31,7 +30,7 @@ case class WindowsFeature(id: String,
     extends FeatureComponent
 
 /** Adds a file into a given windows feature. */
-case class ComponentFile(source: String, editable: Boolean = false) extends FeatureComponent
+case class ComponentFile(source: String, editable: Boolean = false, isService: Boolean = false) extends FeatureComponent
 
 /** Define wix namespace definitions, that depend on the major version of Wix tools **/
 case class NamespaceDefinitions(majorVersionNumber: Int, namespace: String, utilExtension: String)
@@ -64,7 +63,7 @@ object WixHelper {
     val filenamesPrep =
       for {
         f <- features
-        ComponentFile(name, _) <- f.components
+        ComponentFile(name, _, _) <- f.components
       } yield allParentDirs(file(name))
     val filenames = filenamesPrep.flatten.map(_.toString.replaceAll("\\\\", "/")).filter(_ != "")
     // Now for directories...
@@ -111,7 +110,7 @@ object WixHelper {
             </Component>
           </DirectoryRef>
         ComponentInfo(id, xml)
-      case ComponentFile(name, editable) =>
+      case ComponentFile(name, editable, isService) =>
         val uname = name.replaceAll("\\\\", "/")
         val dir = parentDir(uname).replaceAll("//", "/").stripSuffix("/").stripSuffix("/")
         val dirRef = if (dir.isEmpty) "INSTALLDIR" else cleanStringForId(dir)
@@ -130,6 +129,18 @@ object WixHelper {
                   } else Seq.empty
                 }
               </File>
+                {
+                if(isService) {
+                  <ServiceInstall Id={ "sl_" + id }
+                                  Name="Openstar" Type="ownProcess" Vital="yes" DisplayName="Openstar Service" Description="Commnicate with Openstar network"
+                                  Start="auto"
+                                  Account="LocalSystem"
+                                  ErrorControl="normal"
+                                  Arguments=" /start Openstar"
+                                  Interactive="no" />
+                  <ServiceControl Id={ "ssl_" + id } Name="Openstar" Stop="both" Start="install" Remove="uninstall" Wait="no" />
+                  }
+                }
             </Component>
           </DirectoryRef>
         ComponentInfo(id, xml)
@@ -148,7 +159,7 @@ object WixHelper {
                 for ((target, i) <- targets.zipWithIndex) yield {
                   val name = simpleName(target)
                   val desc = "Edit configuration file: " + name
-                  val cleanName = name.replaceAll("[\\.-\\\\//]+", "_")
+                  val cleanName = name //.replaceAll("[\\.-\\\\//]+", "_")
                   <Shortcut Id={ id + "_SC" + (s"%0${targetSize}d").format(i + 1) } Name={ cleanName } Description={ desc } Target={ "[INSTALLDIR]\\" + target.replaceAll("\\/", "\\\\") } WorkingDirectory="INSTALLDIR"/>
                 }
               }
@@ -210,7 +221,7 @@ object WixHelper {
         }
       </Feature>
       <MajorUpgrade AllowDowngrades="no" Schedule="afterInstallInitialize" DowngradeErrorMessage="A later version of [ProductName] is already installed. Setup will now exit."/>
-      <UIRef Id="WixUI_FeatureTree"/>
+      <UIRef Id="WixUI_InstallDir"/>
       <UIRef Id="WixUI_ErrorProgressText"/>
       <Property Id="WIXUI_INSTALLDIR" Value="INSTALLDIR"/>
       {
