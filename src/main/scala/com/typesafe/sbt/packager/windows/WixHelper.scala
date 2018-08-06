@@ -103,7 +103,7 @@ object WixHelper {
         val guid = makeGUID
         val xml =
           <DirectoryRef Id={ dirRef }>
-            <Component Id={ id } Guid={ guid }>
+            <Component Win64="yes" Id={ id } Guid={ guid }>
               <CreateFolder/>
               <Environment Id={ homeEnvVar } Name={ homeEnvVar } Value="[INSTALLDIR]" Permanent="no" Action="set" System="yes"/>
               <Environment Id="PATH" Name="PATH" Value={ pathAddition } Permanent="no" Part="last" Action="set" System="yes"/>
@@ -118,7 +118,7 @@ object WixHelper {
         val id = cleanStringWithPostfix(uname, 66, "") // Room for "fl_"
         val xml =
           <DirectoryRef Id={ dirRef }>
-            <Component Id={ id } Guid={ makeGUID }>
+            <Component Win64="yes" Id={ id } Guid={ makeGUID }>
               <File Id={ "fl_" + id } Name={ cleanFileName(fname) } DiskId='1' Source={ cleanFileName(uname) }>
                 {
                   if (editable) {
@@ -154,7 +154,7 @@ object WixHelper {
         val id = cleanStringWithPostfix("shortcut_" + makeGUID, 67 - targetSize, "") // Room for "_SC"+incremental number
         val xml =
           <DirectoryRef Id="ApplicationProgramsFolder">
-            <Component Id={ id } Guid={ makeGUID }>
+            <Component Win64="yes" Id={ id } Guid={ makeGUID }>
               {
                 for ((target, i) <- targets.zipWithIndex) yield {
                   val name = simpleName(target)
@@ -184,13 +184,13 @@ object WixHelper {
       <Directory Id='TARGETDIR' Name='SourceDir'>
         <Directory Id="ProgramMenuFolder">
           <Directory Id="ApplicationProgramsFolder" Name={ name }>
-            <Component Id={ removeId } Guid={ makeGUID }>
+            <Component Win64="yes" Id={ removeId } Guid={ makeGUID }>
               <RemoveFolder Id="ApplicationProgramsFolderRemove" On="uninstall"/>
               <RegistryValue Root="HKCU" Key={ "Software\\" + product.maintainer + "\\" + name } Name="installed" Type="integer" Value="1" KeyPath="yes"/>
             </Component>
           </Directory>
         </Directory>
-        <Directory Id='ProgramFilesFolder' Name='PFiles'>
+        <Directory Id='ProgramFiles64Folder' Name='PFiles'>
           <Directory Id='INSTALLDIR' Name={ name }>
             { dirToChildren("") map dirXml }
           </Directory>
@@ -238,7 +238,7 @@ object WixHelper {
                     rest: xml.Node): xml.Node =
     <Wix xmlns={ namespaceDefinitions.namespace } xmlns:util={ namespaceDefinitions.utilExtension }>
       <Product Id={ product.id } Name={ product.title } Language='1033' Version={ product.version } Manufacturer={ product.maintainer } UpgradeCode={ product.upgradeId }>
-        <Package Description={ product.description } Comments={ product.comments } Manufacturer={ product.maintainer } InstallScope={ product.installScope } InstallerVersion={ product.installerVersion } Compressed={ if (product.compressed) "yes" else "no" }/>
+        <Package Platform="x64" Description={ product.description } Comments={ product.comments } Manufacturer={ product.maintainer } InstallScope={ product.installScope } InstallerVersion={ product.installerVersion } Compressed={ if (product.compressed) "yes" else "no" }/>
         <Media Id='1' Cabinet={ cleanStringWithPostfix(name.toLowerCase, 65, ".cab") } EmbedCab='yes'/>
         { rest }
       </Product>
@@ -302,7 +302,7 @@ object WixHelper {
     def handleFile(f: File): (Seq[String], scala.xml.Node) = {
       val id = makeId(f)
       val xml = (
-        <Component Id={ id } Guid='*'>
+        <Component Win64="yes" Id={ id } Guid='*'>
           <File Id={ cleanStringForId(id + "_file") } Name={ cleanFileName(f.getName) } DiskId='1' Source={ cleanFileName(f.getAbsolutePath) }/>
         </Component>
       )
